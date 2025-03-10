@@ -23,10 +23,10 @@ public class EmployeeController : ControllerBase
         return Ok(users);
     }
 
-    [HttpGet("{employeeId:int}")]
-    public async Task<ActionResult> GetById(int employeeId)
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult> GetById(int id)
     {
-        var user = await _employeeService.GetById(employeeId);
+        var user = await _employeeService.GetById(id);
         if (user == null) return NotFound();
 
         return Ok(user);
@@ -45,10 +45,10 @@ public class EmployeeController : ControllerBase
         return Ok(employeeModel);
     }
 
-    [HttpPut("{employeeId:int}")]
-    public async Task<ActionResult> Update(int employeeId, EmployeeModel employeeModel)
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult> Update(int id, EmployeeModel employeeModel)
     {
-        var employee = await _employeeService.GetById(employeeId);
+        var employee = await _employeeService.GetById(id);
         if (employee == null) return NotFound();
 
         bool isValidEmail = await _employeeService.CheckEmailValidity(employee.Email, employeeModel.Email);
@@ -61,10 +61,10 @@ public class EmployeeController : ControllerBase
         return Ok(employeeModel);
     }
 
-    [HttpDelete("{employeeId:int}")]
-    public async Task<ActionResult> Remove(int employeeId)
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult> Remove(int id)
     {
-        var employee = await _employeeService.GetById(employeeId);
+        var employee = await _employeeService.GetById(id);
         if (employee == null) return NotFound();
 
         await _employeeService.Remove(employee);
