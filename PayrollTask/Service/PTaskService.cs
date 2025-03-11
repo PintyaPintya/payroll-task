@@ -3,6 +3,7 @@ using PayrollTask.Data;
 using PayrollTask.IService;
 using PayrollTask.Models.Domain;
 using PayrollTask.Models.Dto;
+using PayrollTask.Models.Email;
 
 namespace PayrollTask.Service;
 
@@ -10,11 +11,13 @@ public class PTaskService : IPTaskService
 {
     private readonly ApplicationDbContext _context;
     private readonly IEmployeeService _employeeService;
+    private readonly IEmailSenderService _emailSenderService;
 
-    public PTaskService(ApplicationDbContext context, IEmployeeService employeeService)
+    public PTaskService(ApplicationDbContext context, IEmployeeService employeeService, IEmailSenderService emailSenderService)
     {
         _context = context;
         _employeeService = employeeService;
+        _emailSenderService = emailSenderService;
     }
 
     public async Task<List<PTask>> GetAll(string status)
@@ -64,7 +67,10 @@ public class PTaskService : IPTaskService
         }
 
         await _context.PTasks.AddAsync(pTask);
-        await _context.SaveChangesAsync();
+        if(await _context.SaveChangesAsync() > 0)
+        {
+            await _emailSenderService.SendEmail(employee.Email, "Assigned Payroll Task", $"You have been assigned payroll task with due date as {pTask.DueDate.Date}");
+        }
 
         return (true, "");
     }
@@ -98,7 +104,21 @@ public class PTaskService : IPTaskService
         pTask.SubmissionFilePath = await UploadFile(file, "Output");
         pTask.PTaskStatusId = 2;
         _context.PTasks.Update(pTask);
-        await _context.SaveChangesAsync();
+        if(await _context.SaveChangesAsync() > 0)
+        {
+            var employees = await _context.Employees
+                .Where(e => e.IsActive 
+                    && (e.EmployeeId == pTask.AssignedBy 
+                        || e.EmployeeId == pTask.EmployeeId))
+                .ToListAsync();
+
+            var admin = employees.FirstOrDefault(e => e.EmployeeId == pTask.AssignedBy);
+            var employee = employees.FirstOrDefault(e => e.EmployeeId == pTask.EmployeeId);
+
+            if (admin == null || employee == null) return;
+
+            await _emailSenderService.SendEmail(admin.Email, "Payroll task submitted", $"{employee.Name} has submitted his payroll task please review"); 
+        }
     }
 
     public async Task<PTask?> GetById(int taskId)
