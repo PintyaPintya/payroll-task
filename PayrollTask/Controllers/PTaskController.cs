@@ -59,7 +59,7 @@ namespace PayrollTask.Controllers
             if (task == null)
                 return NotFound("No such task exists");
 
-            if (task.PTaskStatusId != 3 && (statusId != 4 && statusId != 5))
+            if ((task.PTaskStatusId != 3 && task.PTaskStatusId != 2) && (statusId != 4 && statusId != 5))
                 return BadRequest("Invalid task update request");
 
             await _pTaskService.UpdateStatus(task, statusId);
