@@ -8,6 +8,7 @@ OutputFiles/
 
 # dotenv files
 .env
+credentials.json
 
 # User-specific files
 *.rsuser
