@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PayrollTask.Data;
 using PayrollTask.IService;
+using PayrollTask.Models.Calendar;
 using PayrollTask.Models.Domain;
 using PayrollTask.Models.Dto;
 using PayrollTask.Models.Email;
@@ -12,12 +13,14 @@ public class PTaskService : IPTaskService
     private readonly ApplicationDbContext _context;
     private readonly IEmployeeService _employeeService;
     private readonly IEmailSenderService _emailSenderService;
+    private readonly IGoogleCalendarHelper _calendarHelper;
 
-    public PTaskService(ApplicationDbContext context, IEmployeeService employeeService, IEmailSenderService emailSenderService)
+    public PTaskService(ApplicationDbContext context, IEmployeeService employeeService, IEmailSenderService emailSenderService, IGoogleCalendarHelper calendarHelper)
     {
         _context = context;
         _employeeService = employeeService;
         _emailSenderService = emailSenderService;
+        _calendarHelper = calendarHelper;
     }
 
     public async Task<List<PTask>> GetAll(string status)
@@ -106,14 +109,9 @@ public class PTaskService : IPTaskService
         _context.PTasks.Update(pTask);
         if(await _context.SaveChangesAsync() > 0)
         {
-            var employees = await _context.Employees
-                .Where(e => e.IsActive 
-                    && (e.EmployeeId == pTask.AssignedBy 
-                        || e.EmployeeId == pTask.EmployeeId))
-                .ToListAsync();
-
-            var admin = employees.FirstOrDefault(e => e.EmployeeId == pTask.AssignedBy);
-            var employee = employees.FirstOrDefault(e => e.EmployeeId == pTask.EmployeeId);
+            var result = await GetEmployeeAndAdmin(pTask);
+            var employee = result.Item1;
+            var admin = result.Item2;
 
             if (admin == null || employee == null) return;
 
@@ -133,5 +131,38 @@ public class PTaskService : IPTaskService
         pTask.PTaskStatusId = statusId;
         _context.PTasks.Update(pTask);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<(bool, string)> ScheduleReview(PTask task, DateTime dateTime)
+    {
+        var result = (false, "Something went wrong");
+
+        var employees = await GetEmployeeAndAdmin(task);
+        if (employees.Item1 == null || employees.Item2 == null)
+        {
+            result.Item2 = "Employee or admin not found";
+            return result;
+        }
+
+        var info = await _calendarHelper.ScheduleReviewCall(employees.Item1, employees.Item2, dateTime);
+
+        await UpdateStatus(task, 3);
+
+        result.Item2 = string.Empty;
+        return result;
+    }
+
+    private async Task<(Employee?,Employee?)> GetEmployeeAndAdmin(PTask task)
+    {
+        var employees = await _context.Employees
+                .Where(e => e.IsActive
+                    && (e.EmployeeId == task.AssignedBy
+                        || e.EmployeeId == task.EmployeeId))
+                .ToListAsync();
+
+        var admin = employees.FirstOrDefault(e => e.EmployeeId == task.AssignedBy);
+        var employee = employees.FirstOrDefault(e => e.EmployeeId == task.EmployeeId);
+
+        return (employee, admin);
     }
 }

@@ -11,4 +11,5 @@ public interface IPTaskService
     Task<PTask?> GetById(int taskId);
     Task UpdateStatus(PTask pTask, int statusId);
     Task SubmitTask(PTask pTask, IFormFile file);
+    Task<(bool, string)> ScheduleReview(PTask task, DateTime dateTime);
 }

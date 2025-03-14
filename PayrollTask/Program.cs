@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PayrollTask.Data;
 using PayrollTask.IService;
+using PayrollTask.Models.Calendar;
 using PayrollTask.Models.Email;
 using PayrollTask.Service;
 
@@ -21,6 +22,7 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IPTaskService, PTaskService>();
 builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
+builder.Services.AddScoped<IGoogleCalendarHelper, GoogleCalendarHelper>();
 
 var app = builder.Build();
 

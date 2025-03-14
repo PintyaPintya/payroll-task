@@ -1,12 +1,13 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using PayrollTask.Models.Domain;
 
 namespace PayrollTask.Models.Calendar;
 
-public class GoogleCalendarHelper
+public class GoogleCalendarHelper : IGoogleCalendarHelper
 {
     static string[] Scopes = { CalendarService.Scope.Calendar };
     static string ApplicationName = "payroll-task";
@@ -25,6 +26,12 @@ public class GoogleCalendarHelper
                 new FileDataStore(credPath, true));
         }
 
+        var service = new CalendarService(new BaseClientService.Initializer()
+        {
+            HttpClientInitializer = userCredential,
+            ApplicationName = ApplicationName
+        });
+
         var newEvent = new Event()
         {
             Summary = "Payroll task review call",
@@ -32,13 +39,13 @@ public class GoogleCalendarHelper
             Description = $"Payroll task review call of {employee.Name} with {admin.Name}",
             Start = new EventDateTime()
             {
-                DateTime = DateTime.Parse(dateTime),
-                TimeZone = "India Standard Time"
+                DateTimeDateTimeOffset = new DateTimeOffset(dateTime),
+                TimeZone = "Asia/Kolkata",
             },
             End = new EventDateTime()
             {
-                DateTime = DateTime.Parse(dateTime),
-                TimeZone = "India Standard Time",
+                DateTimeDateTimeOffset = new DateTimeOffset(dateTime),
+                TimeZone = "Asia/Kolkata",
             },
             Attendees = new List<EventAttendee>()
             {

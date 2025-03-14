@@ -67,7 +67,7 @@ namespace PayrollTask.Controllers
         }
 
         [HttpPut("ScheduleReview/{taskId:int}")]
-        public async Task<ActionResult> AssignReview(int taskId)
+        public async Task<ActionResult> AssignReview(int taskId, DateTime dateTime)
         {
             var task = await _pTaskService.GetById(taskId);
             if (task == null)
@@ -76,7 +76,13 @@ namespace PayrollTask.Controllers
             if (task.PTaskStatusId != 2)
                 return BadRequest("Invalid task request");
 
-            await _pTaskService.UpdateStatus(task, 3);
+            var result = await _pTaskService.ScheduleReview(task, dateTime);
+
+            if (!result.Item1)
+            {
+                return BadRequest(result.Item2);
+            }
+
             return Ok();
         }
 
