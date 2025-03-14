@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace PayrollTask.Migrations
 {
     /// <inheritdoc />
-    public partial class PTaskAndPTaskStatus : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -73,6 +75,18 @@ namespace PayrollTask.Migrations
                         principalTable: "PTaskStatuses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "PTaskStatuses",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Assigned" },
+                    { 2, "Submitted" },
+                    { 3, "Under Review" },
+                    { 4, "Approved" },
+                    { 5, "Rejected" }
                 });
 
             migrationBuilder.CreateIndex(

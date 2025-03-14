@@ -12,8 +12,8 @@ using PayrollTask.Data;
 namespace PayrollTask.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250310065002_PTaskAndPTaskStatus")]
-    partial class PTaskAndPTaskStatus
+    [Migration("20250314055607_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -120,6 +120,33 @@ namespace PayrollTask.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PTaskStatuses");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Assigned"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Submitted"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Under Review"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Approved"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Rejected"
+                        });
                 });
 
             modelBuilder.Entity("PayrollTask.Models.Domain.PTask", b =>
